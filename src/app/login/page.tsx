@@ -2,16 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from "next/navigation";
+import { auth } from "@/lib/firebaseconfig";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const router = useRouter();
 
-    const handleLogin = () => {
-        // Lógica de autenticação pode ser adicionada aqui
-        console.log('Email:', email, 'Password:', password);
-        router.push('/task');
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            router.push('/profiles/cadastrar')
+        } catch (err) {
+            console.log("Erro ao autenticar: " + err);
+            router.push('/login');
+        }
     };
 
     return (
