@@ -2,12 +2,19 @@
 
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash} from '@fortawesome/free-solid-svg-icons';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { useRouter } from "next/navigation";
 //Types
 import iStep from "@/types/iStep"
 import iTask from "@/types/iTask"
 import TaskAccordion from '@/components/TaskAccordion';
 import StepAccordion from '@/components/StepAccordion';
+//Hooks
+import { createTask } from '@/hooks/createTask';
+import { createStep } from '@/hooks/createStep';
+//Context
+import { useUser } from '@/contexts/authUser';
+
 
 export default function TaskPage() {
     const [tasks, setTasks] = useState<iTask[]>([]);
@@ -15,6 +22,9 @@ export default function TaskPage() {
     const [stepTitle, setStepTitle] = useState('');
     const [stepDescription, setStepDescription] = useState('');
     const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null);
+
+    const { user } = useUser();
+    const router = useRouter();
 
     const addTask = () => {
         const newTask: iTask = {
@@ -48,27 +58,22 @@ export default function TaskPage() {
     const calculateProgress = (steps: iStep[]) => {
         const totalSteps = steps.length;
         const completedSteps = steps.filter(step => step.status === 'Finalizada').length;
-        return totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0; // Calcula o percentual
+        return totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
     };
 
-    const saveTask = async (task: iTask) => {
+    const save = async (task: iTask) => {
         try {
-            const response = await fetch('http://localhost:3000/api/tasks', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(task),
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao salvar a tarefa');
+            const createdTask = await createTask((user?.uid || ""), task.title);
+            for (const step of task.steps) {
+                await createStep(createdTask, step.title, step.description, step.status);
             }
-            console.log('Tarefa salva com sucesso');
-        } catch (error) {
-            console.error('Erro ao salvar a tarefa:', error);
+            router.push('/task');
+        } catch (err) {
+            console.error("Erro ao salvar a tarefa e etapas:", err);
+            router.push('/register');
         }
     };
+
 
     return (
         <div className='flex justify-center p-4 '>
@@ -126,7 +131,7 @@ export default function TaskPage() {
                                         tasks={tasks} />
                                 ))}
                                 <button
-                                    onClick={() => saveTask(task)}
+                                    onClick={() => save(task)}
                                     className="mt-4 p-2 bg-blue-500 text-white rounded">
                                     Salvar
                                 </button>
