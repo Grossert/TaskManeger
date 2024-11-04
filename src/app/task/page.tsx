@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from "next/navigation";
@@ -10,8 +10,8 @@ import iTask from "@/types/iTask"
 import TaskAccordion from '@/components/TaskAccordion';
 import StepAccordion from '@/components/StepAccordion';
 //Hooks
-import { createTask } from '@/hooks/createTask';
-import { createStep } from '@/hooks/createStep';
+import { createTask, getTaskByUserId } from '@/hooks/task';
+import { createStep, getStepByTaskId } from '@/hooks/step';
 //Context
 import { useUser } from '@/contexts/authUser';
 
@@ -25,6 +25,42 @@ export default function TaskPage() {
 
     const { user } = useUser();
     const router = useRouter();
+
+    useEffect(() => {
+        const fetchTasks = async () => {
+            if (user) {
+                try {
+                    const userTasks = await getTaskByUserId(user.uid);
+                    const tasksWithSteps = await Promise.all(
+                        userTasks.map(async (task: any) => {
+                            const steps = await getStepByTaskId(task.id);
+
+                            const formattedSteps = steps.map((step: any) => ({
+                                id: step.id,
+                                title: step.title,
+                                description: step.description,
+                                status: step.status,
+                            }));
+
+                            return {
+                                id: task.id,
+                                title: task.title || 'Título da Tarefa',
+                                status: task.status || 'Não finalizada',
+                                steps: formattedSteps,
+                            };
+                        })
+                    );
+
+                    setTasks(tasksWithSteps as iTask[]);
+                } catch (error) {
+                    console.error("Erro ao carregar tarefas e etapas do usuário:", error);
+                }
+            }
+        };
+
+        fetchTasks();
+    }, [user]);
+
 
     const addTask = () => {
         const newTask: iTask = {
@@ -107,7 +143,7 @@ export default function TaskPage() {
                                         <button
                                             onClick={() => addStepToTask(task.id)}
                                             className="p-2 bg-green-500 text-white rounded mt-2">
-                                            Add Step
+                                            Add Etapa
                                         </button>
                                         <button onClick={() => deleteTask(task.id)} className="text-gray-500 ml-2">
                                             <FontAwesomeIcon icon={faTrash} className="h-5 w-5 inline" />

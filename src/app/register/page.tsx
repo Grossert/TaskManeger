@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { createUser } from '@/hooks/createUser';
+import { createUser } from '@/hooks/user';
 import { useRouter } from "next/navigation";
 //Context
 import { useUser } from '@/contexts/authUser';

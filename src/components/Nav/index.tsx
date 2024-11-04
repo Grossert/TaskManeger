@@ -54,7 +54,7 @@ export default function Nav() {
                     </li>
                     {user && (
                         <li className="w-full hover:bg-gray-700 rounded">
-                            <Link href="/tasks" className="block text-white font-bold hover:text-gray-300 text-center py-2">
+                            <Link href="/task" className="block text-white font-bold hover:text-gray-300 text-center py-2">
                                 {isExpanded ? "Tarefas" : "📋"}
                             </Link>
                         </li>
