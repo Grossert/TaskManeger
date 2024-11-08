@@ -15,8 +15,6 @@ export const createTask = async (userId: string, taskName: string) => {
     }
 };
 
-
-
 export const getTaskByUserId = async (userId: string) => {
     try {
         const tasksQuery = query(

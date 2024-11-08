@@ -1,7 +1,7 @@
 import iStep from "@/types/iStep"
 
 export default interface Task {
-    id: number;
+    id?: string;
     title: string;
     steps: iStep[];
     status?: 'Não finalizada' | 'Finalizada';

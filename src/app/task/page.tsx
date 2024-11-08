@@ -21,7 +21,7 @@ export default function TaskPage() {
     const [taskTitle, setTaskTitle] = useState('');
     const [stepTitle, setStepTitle] = useState('');
     const [stepDescription, setStepDescription] = useState('');
-    const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null);
+    const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
 
     const { user } = useUser();
     const router = useRouter();
@@ -64,7 +64,6 @@ export default function TaskPage() {
 
     const addTask = () => {
         const newTask: iTask = {
-            id: Date.now(),
             title: taskTitle,
             steps: [],
             status: 'Não finalizada',
@@ -73,13 +72,12 @@ export default function TaskPage() {
         setTaskTitle('');
     };
 
-    const deleteTask = (taskId: number) => {
+    const deleteTask = (taskId: string) => {
         setTasks(tasks.filter(task => task.id !== taskId));
     };
 
-    const addStepToTask = (taskId: number) => {
+    const addStepToTask = (taskId: string) => {
         const newStep: iStep = {
-            id: Date.now(),
             title: stepTitle,
             description: stepDescription,
             status: 'Não iniciada',
@@ -99,16 +97,21 @@ export default function TaskPage() {
 
     const save = async (task: iTask) => {
         try {
-            const createdTask = await createTask((user?.uid || ""), task.title);
+            const taskID = await createTask(user?.uid || "", task.title);
+            const updatedTask = { ...task, id: taskID };
             for (const step of task.steps) {
-                await createStep(createdTask, step.title, step.description, step.status);
+                const stepID = await createStep(taskID, step.title, step.description, step.status);
+                const updatedStep = { ...step, id: stepID };
+                updatedTask.steps = updatedTask.steps.map(s => s.title === step.title ? updatedStep : s);
             }
+            setTasks(tasks.map(t => (t.id === task.id ? updatedTask : t)));
             router.push('/task');
         } catch (err) {
             console.error("Erro ao salvar a tarefa e etapas:", err);
             router.push('/register');
         }
     };
+
 
 
     return (
@@ -141,11 +144,11 @@ export default function TaskPage() {
                                 <div className='border-b pb-4'>
                                     <div className="flex items-center justify-between">
                                         <button
-                                            onClick={() => addStepToTask(task.id)}
+                                            onClick={() => addStepToTask(task.id || "")}
                                             className="p-2 bg-green-500 text-white rounded mt-2">
                                             Add Etapa
                                         </button>
-                                        <button onClick={() => deleteTask(task.id)} className="text-gray-500 ml-2">
+                                        <button onClick={() => deleteTask(task.id || "")} className="text-gray-500 ml-2">
                                             <FontAwesomeIcon icon={faTrash} className="h-5 w-5 inline" />
                                         </button>
                                     </div>
