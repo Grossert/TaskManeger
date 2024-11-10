@@ -1,4 +1,3 @@
-import { title } from 'process';
 import { firestore } from '../lib/firebaseconfig';
 import { collection, addDoc, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 //Types
@@ -15,16 +14,22 @@ export const createStep = async (taskId: string, newStep: iStep) => {
     }
 };
 
-export const getStepByTaskId = async (taskId: string) => {
+export const getStepByTaskId = async (taskId: string): Promise<iStep[]> => {
     try {
         const stepsRef = collection(firestore, 'Steps');
         const q = query(stepsRef, where('taskId', '==', taskId));
         const querySnapshot = await getDocs(q);
 
-        const steps = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        const steps: iStep[] = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                title: data.title || "",
+                description: data.description || "",
+                status: data.status || 'Não iniciada',
+                taskId: data.taskId || taskId
+            };
+        });
 
         return steps;
     } catch (error) {
