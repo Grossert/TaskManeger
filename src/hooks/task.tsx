@@ -13,7 +13,7 @@ export const createTask = async (newTask: iTask) => {
     }
 };
 
-export const getTaskByUserId = async (userId: string) => {
+export const getTaskByUserId = async (userId: string): Promise<iTask[]> => {
     try {
         const tasksQuery = query(
             collection(firestore, 'Tasks'),
@@ -21,10 +21,18 @@ export const getTaskByUserId = async (userId: string) => {
         );
 
         const querySnapshot = await getDocs(tasksQuery);
-        const tasks = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+
+        // Mapear os documentos para o tipo iTask
+        const tasks: iTask[] = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                title: data.title || 'Título da Tarefa',
+                status: data.status || 'Não finalizada',
+                userId: data.userId || userId,
+                steps: data.steps || [],
+            };
+        });
 
         return tasks;
     } catch (error) {

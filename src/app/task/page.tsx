@@ -28,10 +28,10 @@ export default function TaskPage() {
                 try {
                     const userTasks = await getTaskByUserId(user.uid);
                     const tasksWithSteps = await Promise.all(
-                        userTasks.map(async (task: any) => {
-                            const steps = await getStepByTaskId(task.id);
+                        userTasks.map(async (task: iTask) => {
+                            const steps = await getStepByTaskId(task.id || "");
 
-                            const formattedSteps = steps.map((step: any) => ({
+                            const formattedSteps = steps.map((step: iStep) => ({
                                 id: step.id,
                                 title: step.title,
                                 description: step.description,
@@ -47,7 +47,7 @@ export default function TaskPage() {
                         })
                     );
 
-                    setTasks(tasksWithSteps as iTask[]);
+                    setTasks(tasksWithSteps);
                 } catch (error) {
                     console.error("Erro ao carregar tarefas e etapas do usuário:", error);
                 }
