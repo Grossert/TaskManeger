@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
-import { useRouter } from "next/navigation";
 //Types
 import iStep from "@/types/iStep"
 import iTask from "@/types/iTask"
@@ -22,7 +21,6 @@ export default function TaskPage() {
     const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
 
     const { user } = useUser();
-    const router = useRouter();
 
     useEffect(() => {
         const fetchTasks = async () => {

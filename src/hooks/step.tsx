@@ -1,4 +1,3 @@
-import { title } from 'process';
 import { firestore } from '../lib/firebaseconfig';
 import { collection, addDoc, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 //Types

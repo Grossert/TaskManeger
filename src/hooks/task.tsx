@@ -3,7 +3,7 @@ import { collection, addDoc, query, where, doc, getDocs, updateDoc, deleteDoc } 
 //Types
 import iTask from "@/types/iTask"
 
-export const createTask = async (newTask: any) => {
+export const createTask = async (newTask: iTask) => {
     try {
         const taskRef = await addDoc(collection(firestore, 'Tasks'), newTask);
         return taskRef.id;
