@@ -5,4 +5,5 @@ export default interface Task {
     title: string;
     steps: iStep[];
     status?: 'Não finalizada' | 'Finalizada';
+    userId?: string
 }

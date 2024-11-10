@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { faTrash, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { deleteStep } from '@/hooks/step';
 // Types
 import iTask from "@/types/iTask";
 import iStep from "@/types/iStep";
@@ -15,13 +16,18 @@ interface Props {
 export default function StepAccordion({ task, step, setTasks, tasks }: Props) {
     const [expandedStepIds, setExpandedStepIds] = useState<{ [taskId: string]: any | null }>({});
 
-    const deleteStep = (taskId: string, stepId: any) => {
-        setTasks(tasks.map(task =>
-            task.id === taskId
-                ? { ...task, steps: task.steps.filter(step => step.id !== stepId) }
-                : task
-        ));
+    const handleDeleteStep = async (stepId: string) => {
+        try {
+            await deleteStep(stepId);
+            setTasks(tasks.map(task => ({
+                ...task,
+                steps: task.steps.filter(step => step.id !== stepId)
+            })));
+        } catch (error) {
+            console.error("Erro ao deletar a etapa:", error);
+        }
     };
+
 
     const editStep = (taskId: string, stepId: any, newTitle: string, newDescription: string) => {
         setTasks(tasks.map(task =>
@@ -94,7 +100,7 @@ export default function StepAccordion({ task, step, setTasks, tasks }: Props) {
                             <option value="Em andamento">Em andamento</option>
                             <option value="Finalizada">Finalizada</option>
                         </select>
-                        <button onClick={() => deleteStep((task.id || ""), step.id)} className="text-gray-500 ml-2">
+                        <button onClick={() => handleDeleteStep(step.id || "")} className="text-gray-500 ml-2">
                             <FontAwesomeIcon icon={faTrash} className="h-5 w-5 inline" />
                         </button>
                     </div>

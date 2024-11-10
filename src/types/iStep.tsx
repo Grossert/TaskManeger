@@ -3,4 +3,5 @@ export default interface Step {
     title: string;
     description: string;
     status: 'Não iniciada' | 'Em andamento' | 'Finalizada';
+    taskId?: string;
 }
