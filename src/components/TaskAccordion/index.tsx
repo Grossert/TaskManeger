@@ -5,7 +5,7 @@ import iTask from "@/types/iTask"
 
 interface Props {
     task: iTask;
-    expandedTaskId: number | null;
+    expandedTaskId: any | null;
     setTasks: any;
     tasks: iTask[];
     setExpandedTaskId: any
@@ -13,11 +13,11 @@ interface Props {
 
 export default function TaskAccordion({ task, expandedTaskId, setTasks, tasks, setExpandedTaskId }: Props) {
 
-    const toggleAccordion = (taskId: number) => {
+    const toggleAccordion = (taskId: any) => {
         setExpandedTaskId(expandedTaskId === taskId ? null : taskId);
     };
 
-    const editTaskTitle = (taskId: number, newTitle: string) => {
+    const editTaskTitle = (taskId: string, newTitle: string) => {
         setTasks(tasks.map(task =>
             task.id === taskId ? { ...task, title: newTitle } : task
         ));
@@ -29,7 +29,7 @@ export default function TaskAccordion({ task, expandedTaskId, setTasks, tasks, s
                 <input
                     type="text"
                     value={task.title}
-                    onChange={(e) => editTaskTitle(task.id, e.target.value)}
+                    onChange={(e) => editTaskTitle((task.id || ""), e.target.value)}
                     className="text-lg font-semibold border-b border-transparent focus:border-gray-400 mr-2" />
             </div>
             <div>

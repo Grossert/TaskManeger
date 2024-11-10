@@ -10,8 +10,8 @@ import iTask from "@/types/iTask"
 import TaskAccordion from '@/components/TaskAccordion';
 import StepAccordion from '@/components/StepAccordion';
 //Hooks
-import { createTask, getTaskByUserId } from '@/hooks/task';
-import { createStep, getStepByTaskId } from '@/hooks/step';
+import { createTask, deleteTask, getTaskByUserId, updateTask } from '@/hooks/task';
+import { createStep, getStepByTaskId, updateStep } from '@/hooks/step';
 //Context
 import { useUser } from '@/contexts/authUser';
 
@@ -19,9 +19,7 @@ import { useUser } from '@/contexts/authUser';
 export default function TaskPage() {
     const [tasks, setTasks] = useState<iTask[]>([]);
     const [taskTitle, setTaskTitle] = useState('');
-    const [stepTitle, setStepTitle] = useState('');
-    const [stepDescription, setStepDescription] = useState('');
-    const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null);
+    const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
 
     const { user } = useUser();
     const router = useRouter();
@@ -57,40 +55,61 @@ export default function TaskPage() {
                 }
             }
         };
-
         fetchTasks();
     }, [user]);
 
-
-    const addTask = () => {
+    //TASK
+    const handleAddTask = async () => {
         const newTask: iTask = {
-            id: Date.now(),
             title: taskTitle,
             steps: [],
             status: 'Não finalizada',
+            userId: user?.uid
         };
-        setTasks([...tasks, newTask]);
-        setTaskTitle('');
+
+        try {
+            const taskID = await createTask(newTask);
+            newTask.id = taskID;
+            setTasks(prevTasks => [...prevTasks, newTask]);
+            setTaskTitle('');
+        } catch (err) {
+            console.error("Erro ao salvar a tarefa:", err);
+        }
     };
 
-    const deleteTask = (taskId: number) => {
-        setTasks(tasks.filter(task => task.id !== taskId));
+    const handleDeleteTask = async (taskId: string) => {
+        try {
+            await deleteTask(taskId);
+            setTasks(tasks.filter(task => task.id !== taskId));
+        } catch (err) {
+            console.error("Erro ao deletar a tarefa:", err);
+        }
     };
 
-    const addStepToTask = (taskId: number) => {
+    //STEP
+    const handleAddStep = async (taskID: string) => {
         const newStep: iStep = {
-            id: Date.now(),
-            title: stepTitle,
-            description: stepDescription,
+            title: "",
+            description: "",
             status: 'Não iniciada',
+            taskId: taskID,
         };
-        setTasks(tasks.map(task =>
-            task.id === taskId ? { ...task, steps: [...task.steps, newStep] } : task
-        ));
-        setStepTitle('');
-        setStepDescription('');
+
+        try {
+            const stepID = await createStep(taskID, newStep);
+            setTasks(prevTasks =>
+                prevTasks.map(task =>
+                    task.id === taskID
+                        ? { ...task, steps: [...task.steps, { ...newStep, id: stepID }] }
+                        : task
+                )
+            );
+        } catch (error) {
+            console.error("Erro ao adicionar a etapa:", error);
+        }
     };
 
+    //OTHERS
     const calculateProgress = (steps: iStep[]) => {
         const totalSteps = steps.length;
         const completedSteps = steps.filter(step => step.status === 'Finalizada').length;
@@ -98,17 +117,43 @@ export default function TaskPage() {
     };
 
     const save = async (task: iTask) => {
+        if (!task.id) {
+            console.error("A tarefa não tem um ID válido.");
+            return;
+        }
         try {
-            const createdTask = await createTask((user?.uid || ""), task.title);
-            for (const step of task.steps) {
-                await createStep(createdTask, step.title, step.description, step.status);
-            }
-            router.push('/task');
-        } catch (err) {
-            console.error("Erro ao salvar a tarefa e etapas:", err);
-            router.push('/register');
+            //TASK
+            const updatedTask: iTask = {
+                ...task,
+                title: task.title.trim(),
+                status: task.status
+            };
+            await updateTask(task.id, updatedTask);
+
+            //STEPS
+            const updatedSteps = task.steps.map((step) => {
+                const updatedStep: iStep = {
+                    ...step,
+                    title: step.title.trim(),
+                    description: step.description.trim(),
+                    status: step.status
+                };
+                updateStep(step.id || "", updatedStep);
+                return updatedStep;
+            });
+            setTasks((prevTasks) =>
+                prevTasks.map((prevTask) =>
+                    prevTask.id === task.id
+                        ? { ...prevTask, title: updatedTask.title, status: updatedTask.status, steps: updatedSteps }
+                        : prevTask
+                )
+            );
+            console.log("Tarefa e etapas salvas com sucesso!");
+        } catch (error) {
+            console.error("Erro ao salvar a tarefa e etapas:", error);
         }
     };
+
 
 
     return (
@@ -122,7 +167,7 @@ export default function TaskPage() {
                         onChange={(e) => setTaskTitle(e.target.value)}
                         placeholder="Titulo da tarefa"
                         className="p-2 border border-gray-300 rounded mr-2" />
-                    <button onClick={addTask} className="p-1 bg-blue-500 text-white rounded">
+                    <button onClick={handleAddTask} className="p-1 bg-blue-500 text-white rounded">
                         Add Tarefa
                     </button>
                 </div>
@@ -141,11 +186,11 @@ export default function TaskPage() {
                                 <div className='border-b pb-4'>
                                     <div className="flex items-center justify-between">
                                         <button
-                                            onClick={() => addStepToTask(task.id)}
+                                            onClick={() => handleAddStep(task.id || "")}
                                             className="p-2 bg-green-500 text-white rounded mt-2">
                                             Add Etapa
                                         </button>
-                                        <button onClick={() => deleteTask(task.id)} className="text-gray-500 ml-2">
+                                        <button onClick={() => handleDeleteTask(task.id || "")} className="text-gray-500 ml-2">
                                             <FontAwesomeIcon icon={faTrash} className="h-5 w-5 inline" />
                                         </button>
                                     </div>
