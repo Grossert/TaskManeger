@@ -3,17 +3,16 @@
 import { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
-//Types
+// Types
 import iStep from "@/types/iStep"
 import iTask from "@/types/iTask"
 import TaskAccordion from '@/components/TaskAccordion';
 import StepAccordion from '@/components/StepAccordion';
-//Hooks
+// Hooks
 import { createTask, deleteTask, getTaskByUserId, updateTask } from '@/hooks/task';
 import { createStep, getStepByTaskId, updateStep } from '@/hooks/step';
-//Context
+// Context
 import { useUser } from '@/contexts/authUser';
-
 
 export default function TaskPage() {
     const [tasks, setTasks] = useState<iTask[]>([]);
@@ -30,14 +29,12 @@ export default function TaskPage() {
                     const tasksWithSteps = await Promise.all(
                         userTasks.map(async (task: iTask) => {
                             const steps = await getStepByTaskId(task.id || "");
-
                             const formattedSteps = steps.map((step: iStep) => ({
                                 id: step.id,
                                 title: step.title,
                                 description: step.description,
                                 status: step.status,
                             }));
-
                             return {
                                 id: task.id,
                                 title: task.title || 'Título da Tarefa',
@@ -46,7 +43,6 @@ export default function TaskPage() {
                             };
                         })
                     );
-
                     setTasks(tasksWithSteps);
                 } catch (error) {
                     console.error("Erro ao carregar tarefas e etapas do usuário:", error);
@@ -56,7 +52,6 @@ export default function TaskPage() {
         fetchTasks();
     }, [user]);
 
-    //TASK
     const handleAddTask = async () => {
         const newTask: iTask = {
             title: taskTitle,
@@ -64,7 +59,6 @@ export default function TaskPage() {
             status: 'Não finalizada',
             userId: user?.uid
         };
-
         try {
             const taskID = await createTask(newTask);
             newTask.id = taskID;
@@ -84,7 +78,6 @@ export default function TaskPage() {
         }
     };
 
-    //STEP
     const handleAddStep = async (taskID: string) => {
         const newStep: iStep = {
             title: "",
@@ -92,7 +85,6 @@ export default function TaskPage() {
             status: 'Não iniciada',
             taskId: taskID,
         };
-
         try {
             const stepID = await createStep(taskID, newStep);
             setTasks(prevTasks =>
@@ -107,7 +99,6 @@ export default function TaskPage() {
         }
     };
 
-    //OTHERS
     const calculateProgress = (steps: iStep[]) => {
         const totalSteps = steps.length;
         const completedSteps = steps.filter(step => step.status === 'Finalizada').length;
@@ -120,7 +111,6 @@ export default function TaskPage() {
             return;
         }
         try {
-            //TASK
             const updatedTask: iTask = {
                 ...task,
                 title: task.title.trim(),
@@ -128,7 +118,6 @@ export default function TaskPage() {
             };
             await updateTask(task.id, updatedTask);
 
-            //STEPS
             const updatedSteps = task.steps.map((step) => {
                 const updatedStep: iStep = {
                     ...step,
@@ -152,20 +141,18 @@ export default function TaskPage() {
         }
     };
 
-
-
     return (
-        <div className='flex justify-center p-4 '>
-            <div className="p-8 border shadow w-1/3 flex flex-col justify-center rounded">
-                <h1 className="text-2xl font-bold mb-6 flex justify-center">Task Manager</h1>
-                <div className="mb-6 flex justify-center" >
+        <div className='flex justify-center p-4'>
+            <div className="p-8 border shadow w-full max-w-4xl flex flex-col justify-center rounded">
+                <h1 className="text-2xl font-bold mb-6 text-center">Task Manager</h1>
+                <div className="mb-6 flex flex-col sm:flex-row justify-center items-center">
                     <input
                         type="text"
                         value={taskTitle}
                         onChange={(e) => setTaskTitle(e.target.value)}
                         placeholder="Titulo da tarefa"
-                        className="p-2 border border-gray-300 rounded mr-2" />
-                    <button onClick={handleAddTask} className="p-1 bg-blue-500 text-white rounded">
+                        className="p-2 border border-gray-300 rounded mb-4 sm:mb-0 sm:mr-2 w-full sm:w-auto" />
+                    <button onClick={handleAddTask} className="p-2 bg-blue-500 text-white rounded w-full sm:w-auto">
                         Add Tarefa
                     </button>
                 </div>
@@ -211,7 +198,7 @@ export default function TaskPage() {
                                 ))}
                                 <button
                                     onClick={() => save(task)}
-                                    className="mt-4 p-2 bg-blue-500 text-white rounded">
+                                    className="mt-4 p-2 bg-blue-500 text-white rounded w-full sm:w-auto">
                                     Salvar
                                 </button>
                             </div>
