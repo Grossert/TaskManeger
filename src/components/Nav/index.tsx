@@ -9,7 +9,7 @@ import { logout } from '@/hooks/auth';
 export default function Nav() {
     const { user, setUser } = useUser();
     const router = useRouter();
-    const [isExpanded, setIsExpanded] = useState(true);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     const handleLogout = async () => {
         await logout();
@@ -23,10 +23,10 @@ export default function Nav() {
 
     useEffect(() => {
         const handleResize = () => {
-            if (window.innerWidth < 640) {
-                setIsExpanded(false);
+            if (window.innerWidth >= 640) {
+                setIsExpanded(true); // Keep navbar expanded on large screens
             } else {
-                setIsExpanded(true);
+                setIsExpanded(false); // Collapse navbar on smaller screens
             }
         };
         window.addEventListener('resize', handleResize);
@@ -35,57 +35,72 @@ export default function Nav() {
     }, []);
 
     return (
-        <div className={`bg-gray-800 p-4 h-full min-h-screen ${isExpanded ? "w-60" : "w-20"} absolute transition-all duration-300 flex flex-col items-center`}>
-            <button
-                onClick={toggleNavbar}
-                className="text-white mb-4 focus:outline-none">
-                {isExpanded ? '←' : '→'}
-            </button>
-            <nav className="flex flex-col items-center space-y-4 w-full">
-                <h1 className={`text-white font-bold text-2xl mb-6 ${!isExpanded && "hidden"}`}>
+        <div className="bg-gray-800 p-4 w-full">
+            <div className="flex justify-between items-center">
+                <h1 className="text-white font-bold text-2xl">
                     TASK MANAGER
                 </h1>
 
-                <ul className="w-full flex flex-col items-center space-y-4">
-                    <li className="w-full hover:bg-gray-700 rounded">
-                        <Link href="/" className="block text-white font-bold hover:text-gray-300 text-center py-2">
+                {/* Navbar links em telas grandes */}
+                <nav className="hidden md:flex justify-center space-x-8">
+                    <ul className="flex space-x-8 justify-center">
+                        <li>
+                            <Link href="/" className="text-white font-bold hover:text-gray-300">
+                                Início
+                            </Link>
+                        </li>
+                        {user && (
+                            <>
+                                <li>
+                                    <Link href="/task" className="text-white font-bold hover:text-gray-300">
+                                        Tarefas
+                                    </Link>
+                                </li>
+                                <li>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="block text-white font-bold hover:text-gray-300">
+                                        Sair
+                                    </button>
+                                </li>
+                            </>
+                        )}
+                    </ul>
+                </nav>
+
+                <button
+                    onClick={toggleNavbar}
+                    className="text-white md:hidden focus:outline-none">
+                    {isExpanded ? '×' : '≡'}
+                </button>
+            </div>
+
+            <nav className={`md:hidden ${isExpanded ? 'block' : 'hidden'} mt-4`}>
+                <ul className="space-y-4 flex flex-col items-end justify-center">
+                    <li>
+                        <Link href="/" className="block text-white font-bold hover:text-gray-300 text-center border px-2 rounded w-32">
                             {isExpanded ? "Início" : "🏠"}
                         </Link>
                     </li>
                     {user && (
-                        <li className="w-full hover:bg-gray-700 rounded">
-                            <Link href="/task" className="block text-white font-bold hover:text-gray-300 text-center py-2">
-                                {isExpanded ? "Tarefas" : "📋"}
-                            </Link>
-                        </li>
+                        <>
+                            <li>
+                                <Link href="/task" className="block text-white font-bold hover:text-gray-300 text-center border px-2 rounded w-32">
+                                    {isExpanded ? "Tarefas" : "📋"}
+                                </Link>
+                            </li>
+                            <li>
+                                <button
+                                    onClick={handleLogout}
+                                    className="block text-white font-bold hover:text-gray-300 text-center border px-2 rounded w-32">
+                                    {isExpanded ? "Sair" : "🚪"}
+                                </button>
+                            </li>
+                        </>
                     )}
                 </ul>
-
-                <div className="mt-auto w-full flex flex-col items-center space-y-4">
-                    {user ? (
-                        <div className="flex flex-col items-center w-full space-y-2">
-                            {isExpanded && (
-                                <div className='pt'>
-                                    <p className="text-white text-center">Usuario:</p>
-                                    <p className="text-white text-center">{user.email}</p>
-                                </div>
-                            )}
-                            <button onClick={handleLogout} className="text-white hover:text-gray-300 text-center pt-5">
-                                {isExpanded ? "Sair" : "🚪"}
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col items-center w-full space-y-2">
-                            <Link href="/login" className="block text-white hover:text-gray-300 font-bold text-center py-2 w-full">
-                                {isExpanded ? "Login" : "🔑"}
-                            </Link>
-                            <Link href="/register" className="block text-white hover:text-gray-300 font-bold text-center py-2 w-full">
-                                {isExpanded ? "Cadastro" : "📝"}
-                            </Link>
-                        </div>
-                    )}
-                </div>
             </nav>
+
         </div>
     );
 }
